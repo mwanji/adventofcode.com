@@ -103,6 +103,16 @@ const totalFuel = DAY_1_INPUT.split('\n').reduce(fuelCalculator, 0);
 console.log(`DAY 1: Total fuel required: ${totalFuel}`);
 
 function fuelCalculator(totalFuel, mass) {
-  return totalFuel + (Math.floor(mass / 3) - 2);
+  let moduleFuel = 0;
+  let currentMass = mass;
+  while (currentMass > 0) {
+    currentMass = getFuelForMass(currentMass);
+    moduleFuel += Math.max(currentMass, 0);
+  }
+
+  return totalFuel + moduleFuel;
 }
 
+function getFuelForMass(mass) {
+  return Math.floor(mass / 3) - 2;
+}
