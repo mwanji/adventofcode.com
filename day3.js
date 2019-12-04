@@ -15,15 +15,30 @@ console.log('test2', test2, test2 === 159);
 const test3 = crossedWiresCalculator(TEST_3_INPUT);
 console.log('test3', test3, test3 === 135);
 const answer = crossedWiresCalculator(DAY_3_INPUT);
-console.log('answer', answer, answer === 207);
+console.log('Day 3, part 1 answer', answer, answer === 207);
+
+const test4 = firstWireCrossingCalculator(TEST_1_INPUT);
+console.log('test4', test4, test4 === 30);
+const test5 = firstWireCrossingCalculator(TEST_2_INPUT);
+console.log('test5', test5, test5 === 610);
+const test6 = firstWireCrossingCalculator(TEST_3_INPUT);
+console.log('test6', test6, test6 === 410);
+const answerPart2 = firstWireCrossingCalculator(DAY_3_INPUT);
+console.log('Day 3, part 2 answer', answerPart2);
 
 function crossedWiresCalculator(input) {
-  const positions = prepareInput(input).map(getPositions);
+  const positions = prepareInput(input).map(getPositions).map(optimisePositions);
   return getWireCrossings(...positions)
     .map(getManhattanDistance)
     .sort((distance1, distance2) => {
       return distance1 - distance2;
     })[0];
+}
+
+function firstWireCrossingCalculator(input) {
+  const [wire1positions, wire2Positions] = prepareInput(input).map(getPositions);
+  const wireCrossings = getWireCrossings(optimisePositions(wire1positions), optimisePositions(wire2Positions));
+  return getFirstWireCrossing(wireCrossings, wire1positions, wire2Positions);
 }
 
 function prepareInput(input) {
@@ -53,12 +68,15 @@ function getPositions(wirePath) {
       }
       return positions;
     }, [{ x: 0, y: 0 }])
-    .slice(1)
-    .reduce((positions, position) => {
-      positions[position.x] = positions[position.x] || {};
-      positions[position.x][position.y] = true;
-      return positions
-    }, {});
+    .slice(1);
+}
+
+function optimisePositions(rawPositions) {
+  return rawPositions.reduce((positions, position) => {
+    positions[position.x] = positions[position.x] || {};
+    positions[position.x][position.y] = true;
+    return positions
+  }, {})
 }
 
 function getWireCrossings(wire1Positions, wire2Positions) {
@@ -72,4 +90,17 @@ function getWireCrossings(wire1Positions, wire2Positions) {
 
 function getManhattanDistance(position) {
   return Math.abs(position.x) + Math.abs(position.y);
+}
+
+function getFirstWireCrossing(wireCrossings, wire1Positions, wire2Positions) {
+  return wireCrossings.map(wireCrossing => {
+    const index1 = wire1Positions.findIndex(({ x, y }) => x === parseInt(wireCrossing.x) && y === parseInt(wireCrossing.y));
+    const index2 = wire2Positions.findIndex(({ x, y }) => x === parseInt(wireCrossing.x) && y === parseInt(wireCrossing.y));
+    // console.log(wire1Positions.slice(0, index1 + 1));
+    wireCrossing.stepCount = index1 + index2 + 2;
+
+    return wireCrossing;
+  }).sort((position1, position2) => {
+    return position1.stepCount - position2.stepCount;
+  })[0].stepCount;
 }
