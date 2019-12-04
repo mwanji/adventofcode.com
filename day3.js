@@ -15,7 +15,7 @@ console.log('test2', test2, test2 === 159);
 const test3 = crossedWiresCalculator(TEST_3_INPUT);
 console.log('test3', test3, test3 === 135);
 const answer = crossedWiresCalculator(DAY_3_INPUT);
-console.log('answer', answer);
+console.log('answer', answer, answer === 207);
 
 function crossedWiresCalculator(input) {
   const positions = prepareInput(input).map(getPositions);
@@ -53,11 +53,21 @@ function getPositions(wirePath) {
       }
       return positions;
     }, [{ x: 0, y: 0 }])
-    .slice(1);
+    .slice(1)
+    .reduce((positions, position) => {
+      positions[position.x] = positions[position.x] || {};
+      positions[position.x][position.y] = true;
+      return positions
+    }, {});
 }
 
 function getWireCrossings(wire1Positions, wire2Positions) {
-  return wire1Positions.filter(wire1Position => wire2Positions.find(wire2Position => wire2Position.x === wire1Position.x && wire2Position.y === wire1Position.y))
+  return Object.entries(wire1Positions).map(([x, ys = {}]) => {
+    const ys2 = wire2Positions[x] || {};
+    return Object.keys(ys).filter(y => ys2[y])
+      .map(y => ({ x, y }))
+  }).filter(crossings => crossings.length > 0)
+    .map(a => a[0]);
 }
 
 function getManhattanDistance(position) {
